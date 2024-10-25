@@ -3322,7 +3322,7 @@ figure.highlight pre .javascript .function {
 }
 #article-container code {
   padding: 2px 4px;
-  background: var(--anzhiyu-code-stress);
+  background: va r(--anzhiyu-code-stress);
   color: #fff;
 }
 #article-container pre {
@@ -19320,7 +19320,7 @@ p.p.gray {
   box-shadow: none;
 }
 [data-theme='dark'] #article-container .note code {
-  background: var(--anzhiyu-code-stress);
+  background: va r(--anzhiyu-code-stress);
 }
 [data-theme='dark'] #article-container .aplayer {
   filter: brightness(0.8);
