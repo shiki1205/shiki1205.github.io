@@ -1,0 +1,466 @@
+<!DOCTYPE html><html lang="zh-CH" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>MIPS简易流水线CPU | Shiki</title><meta name="keywords" content="CPU,Verilog"><meta name="author" content="shiki,1513632469@qq.com"><meta name="copyright" content="shiki"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="MIPS简易流水线CPU"><meta name="application-name" content="MIPS简易流水线CPU"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="MIPS简易流水线CPU"><meta property="og:url" content="http://example.com/posts/0.html"><meta property="og:site_name" content="Shiki"><meta property="og:description" content="设计思路基本结构流水线寄存器，GRF等模块与P6相同，新增timer模块，bridge模块，cp0模块，形成如下图所示的结构。其中timer模块采用课程组设计，bridge模块负责将cpu传出的数据与外界，timer模块相连，cp0模块负责响应异常和终端，并记录相关信息。   模块设计bridge"><meta property="og:locale" content="zh-CH"><meta property="og:image" content="http://example.com/images/cpu.png"><meta property="article:author" content="shiki"><meta property="article:tag"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="http://example.com/images/cpu.png"><meta name="description" content="设计思路基本结构流水线寄存器，GRF等模块与P6相同，新增timer模块，bridge模块，cp0模块，形成如下图所示的结构。其中timer模块采用课程组设计，bridge模块负责将cpu传出的数据与外界，timer模块相连，cp0模块负责响应异常和终端，并记录相关信息。   模块设计bridge"><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="http://example.com/posts/0.html"><link rel="preconnect" href="//cdn.cbd.int"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="xxx"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: {"enable":true,"img":"https://i.postimg.cc/MKQqThYs/20241120214230.png"},
+  postHeadAiDescription: {"enable":true,"gptName":"AnZhiYu","mode":"local","switchBtn":false,"btnLink":"https://afdian.net/item/886a79d4db6711eda42a52540025c377","randomNum":3,"basicWordCount":1000,"key":"xxxx","Referer":"https://xx.xx/"},
+  diytitle: {"enable":true,"leaveTitle":"w(ﾟДﾟ)w 不要走！再看看嘛！","backTitle":"♪(^∇^*)欢迎肥来！"},
+  LA51: undefined,
+  greetingBox: undefined,
+  twikooEnvId: '',
+  commentBarrageConfig:undefined,
+  music_page_default: "nav_music",
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: undefined,
+  authorStatus: undefined,
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":330},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    simplehomepage: true,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: shiki","link":"链接: ","source":"来源: Shiki","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#425AEF","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: 'Shiki',
+  title: 'MIPS简易流水线CPU',
+  postAI: '',
+  pageFillDescription: '设计思路, 基本结构, 模块设计, bridge, cp0, mips, 冒险处理模块, 异常判断以及相应信号的产生, 备注设计思路基本结构流水线寄存器等模块与相同新增模块模块模块形成如下图所示的结构其中模块采用课程组设计模块负责将传出的数据与外界模块相连模块负责响应异常和终端并记录相关信息模块设计主要用于传输数据将数据发送至相应接口部分代码示例如下模块主要用于处理异常和终端位于流水线中的极设有与类似的多个寄存器此处仅设计其中的三个寄存器其中用于记录异常状态用于记录异常类型用于记录异常发生时的指令地址输入输出端口如下时钟信号复位信号指令写使能信号寄存器地址仅用于指令寄存器输入数据仅用于指令寄存器输出数据仅用于指令发生异常或传入中断时的值是否为延迟槽指令异常类型外部中断类型异常中断处理结束信号输出值异常中断处理开始信号三个寄存器部分位含义见下图异常和中断处理逻辑部分发生中断或异常时如果此时不在处理中断和异常则将信号置为即中断和异常处理的开始信号如果此时正在处理中断和异常则置为在下一个时钟上升沿到来时如果为将置为表示正在进行中断和异常处理并将相应的输入信号存入对应寄存器为时表示异常中断处理结束置为由于可能产生数据冒险为其输出端口设计内部转发顶层模块连接冒险处理模块大体上与相同由于新增了指令故需考虑以下情况写入寄存器下一条指令为指令此时需要阻塞一个周期冒险处理与乘除模块的等类似除以及写寄存器地址可能不同异常判断以及相应信号的产生涉及到的异常情况及其编码如下表异常中断码助记符与名称指令或指令类型描述外部中断所有指令中断请求来源于计时器与外部中断取指异常所有指令地址未字对齐地址超出取数异常地址未字节对齐地址未字节对齐取寄存器的值型指令地址计算加法溢出型指令取数地址超出中断发生器地址存数异常地址未字节对齐地址未字节对齐存寄存器的值型指令地址计算加法溢出型指令向计时器的寄存器存值型指令取数地址超出中断发生器地址系统调用系统调用未知指令未知指令码溢出异常算数溢出极判断值是否产生异常同时判断是否为延迟槽指令注意如果此时正在进行阻塞异常判断码和延迟槽判断信号应当保持不变极判断是否为未知指令或系统调用注意如果此时正在进行阻塞异常判断码应当置为延迟槽判断信号保持不变同时注意异常优先级极判断是否有溢出现象注意异常优先级极判断存取指令地址是否有异常注意异常优先级异常和中断处理开始时清空除极以外的所有极指令同时将这些值置为异常和中断开始时如果乘除模块正在进行乘除运算此时不需要处理如果异常和中断刚刚开始时即极为异常指令或产生中断极为乘除模块相关指令则需要取消其运算异常和中断开始时跳转至地址为的指令从而进行异常和中断的处理异常优先级最早发生的异常优先级最高备注由于中断可能发生于任意时刻此时流水线并不能明确地说其在进行哪一条指令因此引入宏观的概念即宏观地将流水线看作单周期此时的值应当为寄存器所在流水极的值此处为极负责保存发生异常或中断时的值即为宏观然而当此时正在进行延迟槽指令时应当存入避免重复执行延迟槽指令',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2025-03-17 21:34:43',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.3.0"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://i.postimg.cc/SRTw5vxp/20241025102527.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><a id="site-name" href="/" accesskey="h"><div class="title">Shiki</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div></div><div id="nav-right"><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" target="_blank"><img class="post-qr-code-img" alt="微信" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" target="_blank"><img class="post-qr-code-img" alt="支付宝" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/CPU/" style="font-size: 1.05rem;">CPU<sup>5</sup></a><a href="/tags/Logisim/" style="font-size: 1.05rem;">Logisim<sup>1</sup></a><a href="/tags/Verilog/" style="font-size: 1.05rem;">Verilog<sup>4</sup></a><a href="/tags/test/" style="font-size: 1.05rem;">test<sup>1</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/03/"><span class="card-archive-list-date">March 2025</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">1</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/12/"><span class="card-archive-list-date">December 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">1</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">November 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">October 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="post-meta-categories"><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90/" itemprop="url">计算机组成</a></span><span class="article-meta tags"><a class="article-meta__tags" href="/tags/CPU/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>CPU</span></a><a class="article-meta__tags" href="/tags/Verilog/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>Verilog</span></a></span></div></div><h1 class="post-title" itemprop="name headline">MIPS简易流水线CPU</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" itemprop="dateCreated datePublished" datetime="2025-03-17T13:25:33.340Z" title="发表于 2025-03-17 21:25:33">2025-03-17</time><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" itemprop="dateCreated datePublished" datetime="2025-03-17T13:34:43.007Z" title="更新于 2025-03-17 21:34:43">2025-03-17</time></span></div><div class="meta-secondline"></div></div></div><section class="main-hero-waves-area waves-area"><svg class="waves-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"></path></defs><g class="parallax"><use href="#gentle-wave" x="48" y="0"></use><use href="#gentle-wave" x="48" y="3"></use><use href="#gentle-wave" x="48" y="5"></use><use href="#gentle-wave" x="48" y="7"></use></g></svg></section><div id="post-top-cover"><img class="nolazyload" id="post-top-bg" src="/images/cpu.png"></div></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container" itemscope itemtype="http://example.com/posts/0.html"><header><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90/" itemprop="url">计算机组成</a><a href="/tags/CPU/" tabindex="-1" itemprop="url">CPU</a><a href="/tags/Verilog/" tabindex="-1" itemprop="url">Verilog</a><h1 id="CrawlerTitle" itemprop="name headline">MIPS简易流水线CPU</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">shiki</span><time itemprop="dateCreated datePublished" datetime="2025-03-17T13:25:33.340Z" title="发表于 2025-03-17 21:25:33">2025-03-17</time><time itemprop="dateCreated datePublished" datetime="2025-03-17T13:34:43.007Z" title="更新于 2025-03-17 21:34:43">2025-03-17</time></header><h1 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h1><h2 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h2><p>流水线寄存器，GRF等模块与P6相同，新增timer模块，bridge模块，cp0模块，形成如下图所示的结构。<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241205144737.png" alt="图片"><br>其中timer模块采用课程组设计，bridge模块负责将cpu传出的数据与外界，timer模块相连，cp0模块负责响应异常和终端，并记录相关信息。  </p>
+<h2 id="模块设计"><a href="#模块设计" class="headerlink" title="模块设计"></a>模块设计</h2><h3 id="bridge"><a href="#bridge" class="headerlink" title="bridge"></a>bridge</h3><ul>
+<li>主要用于传输数据，将数据发送至相应接口，部分代码示例如下：    <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> cpuReadData = (cpuDataAddr&gt;=<span class="number">0</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h2fff</span>)?memReadData:</span><br><span class="line">                        (cpuDataAddr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h7f0b</span>)?timer1ReadData:</span><br><span class="line">                        (cpuDataAddr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h7f1b</span>)?timer2ReadData:</span><br><span class="line">                        <span class="number">0</span>;        </span><br><span class="line"><span class="keyword">assign</span> timer1DataAddr = cpuDataAddr;</span><br><span class="line"><span class="keyword">assign</span> timer1We = (cpuDataAddr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h7f0b</span>&amp;&amp;cpuDataByteen==<span class="number">4&#x27;b1111</span>);</span><br><span class="line"><span class="keyword">assign</span> timer1WriteData = cpuWriteData;</span><br><span class="line"><span class="keyword">assign</span> timer2DataAddr = cpuDataAddr;</span><br><span class="line"><span class="keyword">assign</span> timer2We = (cpuDataAddr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h7f1b</span>&amp;&amp;cpuDataByteen==<span class="number">4&#x27;b1111</span>);</span><br><span class="line"><span class="keyword">assign</span> timer2WriteData = cpuWriteData;</span><br><span class="line"><span class="keyword">assign</span> memDataAddr = cpuDataAddr;</span><br><span class="line"><span class="keyword">assign</span> memWriteData = cpuWriteData;</span><br><span class="line"><span class="keyword">assign</span> memDataByteen = (cpuDataAddr&gt;=<span class="number">0</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h2fff</span>)?cpuDataByteen:<span class="number">0</span>;</span><br><span class="line"><span class="keyword">assign</span> intAddr = cpuDataAddr;</span><br><span class="line"><span class="keyword">assign</span> intByteen = (cpuDataAddr&gt;=<span class="number">32&#x27;h7f20</span>&amp;&amp;cpuDataAddr&lt;=<span class="number">32&#x27;h7f23</span>)?cpuDataByteen:<span class="number">0</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="cp0"><a href="#cp0" class="headerlink" title="cp0"></a>cp0</h3><p>cp0模块主要用于处理异常和终端，位于流水线cpu中的M极，设有与GRF类似的多个寄存器，此处仅设计其中的三个寄存器：SR,Cause,EPC。其中SR用于记录异常状态，Cause用于记录异常类型，EPC用于记录异常发生时的指令地址。 </p>
+<ul>
+<li>输入输出端口如下：  <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> CP0 (</span><br><span class="line">    <span class="keyword">input</span>  clk,                  <span class="comment">// 时钟信号</span></span><br><span class="line">    <span class="keyword">input</span>  reset,                <span class="comment">// 复位信号</span></span><br><span class="line">    <span class="keyword">input</span>  en,                   <span class="comment">// mtc0指令写使能信号</span></span><br><span class="line">    <span class="keyword">input</span> [<span class="number">4</span>:<span class="number">0</span>] CP0Add,          <span class="comment">// cp0寄存器地址（仅用于mtc0指令）</span></span><br><span class="line">    <span class="keyword">input</span> [<span class="number">31</span>:<span class="number">0</span>] CP0In,          <span class="comment">// cp0寄存器输入数据（仅y用于mtc0指令）</span></span><br><span class="line">    <span class="keyword">output</span> [<span class="number">31</span>:<span class="number">0</span>] CP0Out,        <span class="comment">// cp0寄存器输出数据 （仅用于mfc0指令）</span></span><br><span class="line">    <span class="keyword">input</span> [<span class="number">31</span>:<span class="number">0</span>] VPC,            <span class="comment">// 发生异常或传入中断时的PC值</span></span><br><span class="line">    <span class="keyword">input</span> BDIn,                  <span class="comment">// 是否为延迟槽指令</span></span><br><span class="line">    <span class="keyword">input</span> [<span class="number">4</span>:<span class="number">0</span>] ExcCodeIn,       <span class="comment">// 异常类型</span></span><br><span class="line">    <span class="keyword">input</span> [<span class="number">5</span>:<span class="number">0</span>] HWInt,           <span class="comment">// 外部中断类型</span></span><br><span class="line">    <span class="keyword">input</span> EXLClr,                <span class="comment">// 异常中断处理结束信号</span></span><br><span class="line">    <span class="keyword">output</span> [<span class="number">31</span>:<span class="number">0</span>] EPCOut,        <span class="comment">// EPC输出值</span></span><br><span class="line">    <span class="keyword">output</span> <span class="keyword">reg</span> Req               <span class="comment">// 异常中断处理开始信号</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+<li>三个寄存器部分位含义，见下图。<br>  <img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241205150332.png" alt="图片">  </li>
+<li>异常和中断处理逻辑（CP0部分）：<ol>
+<li>发生中断或异常时如果此时不在处理中断和异常，则将Req信号置为1，即中断和异常处理的开始信号，如果此时正在处理中断和异常则置为0。</li>
+<li>在下一个时钟上升沿到来时，如果Req为1，将EXL置为1，表示正在进行中断和异常处理，并将相应的输入信号存入对应寄存器。</li>
+<li>EXLClr为1时，表示异常中断处理结束，EXL置为0。</li>
+</ol>
+</li>
+<li>ps：由于EPC可能产生数据冒险，为其输出端口EPCOut设计内部转发。</li>
+</ul>
+<h3 id="mips"><a href="#mips" class="headerlink" title="mips"></a>mips</h3><p>顶层模块，连接cpu，bridge，timer1，timer2。  </p>
+<h3 id="冒险处理模块"><a href="#冒险处理模块" class="headerlink" title="冒险处理模块"></a>冒险处理模块</h3><p>大体上与P6相同，由于新增了mfc0，mtc0，eret，指令，故需考虑以下情况：  </p>
+<ol>
+<li>mtc0写入EPC寄存器，下一条指令为eret指令，此时需要阻塞一个周期。</li>
+<li>mfc0，mtc0冒险处理与乘除模块的mfhi，mthi等类似（除tUse，tNew以及写寄存器地址可能不同）。</li>
+</ol>
+<h2 id="异常判断以及相应信号的产生"><a href="#异常判断以及相应信号的产生" class="headerlink" title="异常判断以及相应信号的产生"></a>异常判断以及相应信号的产生</h2><p>涉及到的异常情况及其编码ExcCode如下表：  </p>
+<table>
+<tr>
+<th align="center">异常中断码</th>
+<th align="center">助记符与名称</th>
+<th align="center">指令或指令类型</th>
+<td align="left">描述</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">Int（外部中断）</td>
+<td align="center">所有指令</td>
+<td align="left">中断请求，来源于计时器与外部中断。</td>
+</tr>
+<tr>
+<td rowspan=7 align="center">4</td>
+<td rowspan=2 align="center">AdEl（取指异常）</td>
+<td rowspan=2 align="center">所有指令</td>
+<td>PC地址未字对齐</td>
+</tr>
+<td>PC地址超出0x3000 ~ 0x6ffc</td>
+</tr>
+<tr>
+<td rowspan=5 align="center">AdEl（取数异常）</td>
+<td align="center">lw</td>
+<td align="left">地址未4字节对齐</td>
+</tr>
+<tr>
+<td align="center">lh</td>
+<td align="left">地址未2字节对齐</td>
+</tr>
+<tr>
+<td align="center">lh，lb</td>
+<td align="left">取timer寄存器的值</td>
+</tr>
+<tr>
+<td align="center">load型指令</td>
+<td align="left">地址计算加法溢出</td>
+</tr>
+<tr>
+<td align="center">load型指令</td>
+<td align="left">取数地址超出DM，timer1，timer2，中断发生器地址</td>
+</tr>
+<tr>
+<td rowspan=6 align="center">5</td>
+<td rowspan=6 align="center">AdEs（存数异常）</td>
+<td align="center">sw</td>
+<td align="left">地址未4字节对齐</td>
+</tr>
+<tr>
+<td align="center">sh</td>
+<td align="left">地址未2字节对齐</td>
+</tr>
+<tr>
+<td align="center">sh，sb</td>
+<td align="left">存timer寄存器的值</td>
+</tr>
+<tr>
+<td align="center">store型指令</td>
+<td align="left">地址计算加法溢出</td>
+</tr>
+<tr>
+<td align="center">store型指令</td>
+<td align="left">向计时器的Count寄存器存值</td>
+</tr>
+<tr>
+<td align="center">store型指令</td>
+<td align="left">取数地址超出DM，timer1，timer2，中断发生器地址</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">syscall（系统调用）</td>
+<td align="center">syscall</td>
+<td>系统调用</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td align="center">RI（未知指令）</td>
+<td align="center">-</td>
+<td>未知指令码</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td align="center">Ov（溢出异常）</td>
+<td align="center">add，addi，sub</td>
+<td>算数溢出</td>
+</tr>
+</table>  
+
+<ol>
+<li>I极判断pc值是否产生异常同时判断是否为延迟槽指令，<strong>注意如果此时正在进行阻塞，异常判断码和延迟槽判断信号应当保持不变</strong>。 <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> ExcCodeI = (freezD==<span class="number">1</span>)?ExcCodeD:</span><br><span class="line">                    (pcI[<span class="number">1</span>:<span class="number">0</span>]!=<span class="number">0</span>||!(pcI&gt;=<span class="number">32&#x27;h3000</span>&amp;&amp;pcI&lt;=<span class="number">32&#x27;h6ffc</span>))?<span class="number">4</span>:<span class="number">0</span>;</span><br><span class="line"><span class="keyword">assign</span> BDInI = (freezD==<span class="number">1</span>)?BDInD:((codeD[<span class="number">31</span>:<span class="number">26</span>]==<span class="number">0</span>&amp;&amp;codeD[<span class="number">5</span>:<span class="number">0</span>]==`jrfun)||codeD[<span class="number">31</span>:<span class="number">26</span>]==`beq||codeD[<span class="number">31</span>:<span class="number">26</span>]==`jal||codeD[<span class="number">31</span>:<span class="number">26</span>]==`bne);</span><br></pre></td></tr></table></figure></li>
+<li>D极判断是否为未知指令或系统调用，<strong>注意如果此时正在进行阻塞，异常判断码应当置为0，延迟槽判断信号保持不变</strong>，<strong>同时注意异常优先级</strong>。   <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> ExcCodeDIn = (freezD==<span class="number">1</span>)?<span class="number">0</span>:</span><br><span class="line">                    (ExcCodeD!=<span class="number">0</span>)?ExcCodeD:</span><br><span class="line">                    (syscall==<span class="number">1</span>)?<span class="number">8</span>:</span><br><span class="line">                    (RI==<span class="number">1</span>)?<span class="number">10</span>:</span><br><span class="line">                    ExcCodeD;</span><br></pre></td></tr></table></figure></li>
+<li>E极判断是否有溢出现象，<strong>注意异常优先级</strong>。   <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> ExcCodeEIn = (ExcCodeE!=<span class="number">0</span>)?ExcCodeE:</span><br><span class="line">                    (Ov==<span class="number">1</span>&amp;&amp;(ALUop==<span class="number">0</span>||ALUop==<span class="number">1</span>))?((MemWriteE==<span class="number">1</span>)?<span class="number">5</span>:</span><br><span class="line">                            (MemtoRegE==<span class="number">1</span>)?<span class="number">4</span>:</span><br><span class="line">                            <span class="number">12</span>):</span><br><span class="line">                    ExcCodeE;</span><br></pre></td></tr></table></figure></li>
+<li>M极判断存取指令地址是否有异常，<strong>注意异常优先级</strong>。   <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> ExcCodeMIn = (HWInt!=<span class="number">0</span>)?<span class="number">0</span>:</span><br><span class="line">                    (ExcCodeM!=<span class="number">0</span>)?ExcCodeM:((MemtoRegM==<span class="number">1</span>)?((extMemWordOp==<span class="number">0</span>&amp;&amp;m_data_addr[<span class="number">1</span>:<span class="number">0</span>]!=<span class="number">0</span>)?<span class="number">4</span>:</span><br><span class="line">                                                    (extMemWordOp==<span class="number">4</span>&amp;&amp;m_data_addr[<span class="number">0</span>]!=<span class="number">0</span>)?<span class="number">4</span>:</span><br><span class="line">                                                    ((extMemWordOp==<span class="number">2</span>||extMemWordOp==<span class="number">4</span>)&amp;&amp;((m_data_addr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f0b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f1b</span>)))?<span class="number">4</span>:</span><br><span class="line">                                                    (!((m_data_addr&gt;=<span class="number">0</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h2fff</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f0b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f1b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f20</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f23</span>)))?<span class="number">4</span>:</span><br><span class="line">                                                    ExcCodeM):</span><br><span class="line">                                    ((MemWrite==<span class="number">1</span>)?((mDataByteen==<span class="number">3</span>&amp;&amp;m_data_addr[<span class="number">1</span>:<span class="number">0</span>]!=<span class="number">0</span>)?<span class="number">5</span>:</span><br><span class="line">                                                    (mDataByteen==<span class="number">2</span>&amp;&amp;m_data_addr[<span class="number">0</span>]!=<span class="number">0</span>)?<span class="number">5</span>:</span><br><span class="line">                                                    ((mDataByteen==<span class="number">2</span>||mDataByteen==<span class="number">1</span>)&amp;&amp;((m_data_addr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f0b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f1b</span>)))?<span class="number">5</span>:</span><br><span class="line">                                                    (m_data_addr[<span class="number">3</span>:<span class="number">0</span>]==<span class="number">8</span>&amp;&amp;((m_data_addr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f0b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f1b</span>)))?<span class="number">5</span>:</span><br><span class="line">                                                    (!((m_data_addr&gt;=<span class="number">0</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h2fff</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f00</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f0b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f10</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f1b</span>)||(m_data_addr&gt;=<span class="number">32&#x27;h7f20</span>&amp;&amp;m_data_addr&lt;=<span class="number">32&#x27;h7f23</span>)))?<span class="number">5</span>:</span><br><span class="line">                                                    ExcCodeM):</span><br><span class="line">                                                    ExcCodeM));</span><br></pre></td></tr></table></figure></li>
+<li>异常和中断处理开始时，清空除W极以外的所有极指令<strong>同时将这些值pc置为</strong>32’h4180。</li>
+<li>异常和中断开始时，如果乘除模块正在进行乘除运算，此时不需要处理，如果异常和中断刚刚开始时（即M极为异常指令或产生中断，E极为乘除模块相关指令），则需要取消其运算。  </li>
+<li>异常和中断开始时，跳转至地址为32’h4180的指令，从而进行异常和中断的处理。  </li>
+<li>异常优先级：<strong>最早发生的异常优先级最高</strong>。</li>
+</ol>
+<h2 id="备注"><a href="#备注" class="headerlink" title="备注"></a>备注</h2><ul>
+<li>由于中断可能发生于任意时刻，此时流水线cpu并不能明确地说其在进行哪一条指令，因此引入宏观pc的概念，即宏观地将流水线cpu看作单周期cpu，此时的pc值应当为CP0寄存器所在流水极的pc值（此处为M极pc）。  </li>
+<li>EPC负责保存发生异常或中断时的pc值，即为宏观pc，然而当此时正在进行延迟槽指令时，应当存入<strong>pc+4</strong>（避免重复执行延迟槽指令）。</li>
+</ul>
+</article><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/posts/c4de2d78.html"><img class="prev-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/CPU_extend.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">五级流水线CPU（扩展指令）-Verilog设计</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="anzhiyufont anzhiyu-icon-thumbs-up fa-fw" style="font-size: 1.5rem; margin-right: 4px"></i><span>喜欢这篇文章的人也看了</span></div><div class="relatedPosts-list"><div><a href="/posts/31a7036b.html" title="五级流水线CPU（精简指令）-Verilog设计"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/CPU_stream.png" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-11-28</div><div class="title">五级流水线CPU（精简指令）-Verilog设计</div></div></a></div><div><a href="/posts/c4de2d78.html" title="五级流水线CPU（扩展指令）-Verilog设计"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/CPU_extend.png" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-12-02</div><div class="title">五级流水线CPU（扩展指令）-Verilog设计</div></div></a></div><div><a href="/posts/66de4e4e.html" title="MIPS单周期CPU-Verilog"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241107184400.png" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-11-07</div><div class="title">MIPS单周期CPU-Verilog</div></div></a></div><div><a href="/posts/5bd2752a.html" title="Logisim 单周期CPU设计"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241030155320.png" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-10-30</div><div class="title">Logisim 单周期CPU设计</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info-avatar"><img class="avatar-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://i.postimg.cc/SRTw5vxp/20241025102527.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__description"></div><div class="author-info__bottom-group"><a class="author-info__bottom-group-left" href="/"><h1 class="author-info__name">shiki</h1><div class="author-info__desc">一二三，睦头人</div></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/shiki1205" target="_blank" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/456034501?spm_id_from=333.1007.0.0" target="_blank" title="BiliBili"><i class="anzhiyufont anzhiyu-icon-bilibili"></i></a></div></div></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bullhorn anzhiyu-shake"></i><span>公告</span></div><div class="announcement_content">我不会说计科太坐牢了，但这就是事实</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF"><span class="toc-number">1.</span> <span class="toc-text">设计思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">基本结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">模块设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bridge"><span class="toc-number">1.2.1.</span> <span class="toc-text">bridge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cp0"><span class="toc-number">1.2.2.</span> <span class="toc-text">cp0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mips"><span class="toc-number">1.2.3.</span> <span class="toc-text">mips</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%92%E9%99%A9%E5%A4%84%E7%90%86%E6%A8%A1%E5%9D%97"><span class="toc-number">1.2.4.</span> <span class="toc-text">冒险处理模块</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E5%88%A4%E6%96%AD%E4%BB%A5%E5%8F%8A%E7%9B%B8%E5%BA%94%E4%BF%A1%E5%8F%B7%E7%9A%84%E4%BA%A7%E7%94%9F"><span class="toc-number">1.3.</span> <span class="toc-text">异常判断以及相应信号的产生</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%87%E6%B3%A8"><span class="toc-number">1.4.</span> <span class="toc-text">备注</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/0.html" title="MIPS简易流水线CPU"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/cpu.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIPS简易流水线CPU"/></a><div class="content"><a class="title" href="/posts/0.html" title="MIPS简易流水线CPU">MIPS简易流水线CPU</a><time datetime="2025-03-17T13:25:33.340Z" title="发表于 2025-03-17 21:25:33">2025-03-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/c4de2d78.html" title="五级流水线CPU（扩展指令）-Verilog设计"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/CPU_extend.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="五级流水线CPU（扩展指令）-Verilog设计"/></a><div class="content"><a class="title" href="/posts/c4de2d78.html" title="五级流水线CPU（扩展指令）-Verilog设计">五级流水线CPU（扩展指令）-Verilog设计</a><time datetime="2024-12-02T14:20:50.000Z" title="发表于 2024-12-02 22:20:50">2024-12-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/31a7036b.html" title="五级流水线CPU（精简指令）-Verilog设计"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/CPU_stream.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="五级流水线CPU（精简指令）-Verilog设计"/></a><div class="content"><a class="title" href="/posts/31a7036b.html" title="五级流水线CPU（精简指令）-Verilog设计">五级流水线CPU（精简指令）-Verilog设计</a><time datetime="2024-11-28T08:54:01.000Z" title="发表于 2024-11-28 16:54:01">2024-11-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/66de4e4e.html" title="MIPS单周期CPU-Verilog"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241107184400.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIPS单周期CPU-Verilog"/></a><div class="content"><a class="title" href="/posts/66de4e4e.html" title="MIPS单周期CPU-Verilog">MIPS单周期CPU-Verilog</a><time datetime="2024-11-07T09:47:49.000Z" title="发表于 2024-11-07 17:47:49">2024-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/5bd2752a.html" title="Logisim 单周期CPU设计"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/images/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20241030155320.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Logisim 单周期CPU设计"/></a><div class="content"><a class="title" href="/posts/5bd2752a.html" title="Logisim 单周期CPU设计">Logisim 单周期CPU设计</a><time datetime="2024-10-30T07:40:52.000Z" title="发表于 2024-10-30 15:40:52">2024-10-30</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2020 - 2025 By <a class="footer-bar-link" href="/" title="shiki" target="_blank">shiki</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">2</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">主题来源</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="GitHub"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="GitHub"/><span class="back-menu-item-text">GitHub</span></a></div></div></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/CPU/" style="font-size: 0.88rem;">CPU<sup>5</sup></a><a href="/tags/Logisim/" style="font-size: 0.88rem;">Logisim<sup>1</sup></a><a href="/tags/Verilog/" style="font-size: 0.88rem;">Verilog<sup>4</sup></a><a href="/tags/test/" style="font-size: 0.88rem;">test<sup>1</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="219082993" server="tencent" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume="0.7"></meting-js></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/9207906716&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.5/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("04/01/2021 00:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2020 By 安知鱼 V1.6.14",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 shiki 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="post"></div><script>var visitorMail = "";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>
